@@ -1,35 +1,30 @@
 # Task 1
 
 class Employee:
-    def __init__(self, name, salary, **kwargs):
+    def __init__(self, name, salary):
         self.name = name
         self.salary = salary
-        super().__init__(**kwargs)
 
 
 class Manager(Employee):
-    def __init__(self, department, **kwargs):
+    def __init__(self, name, salary, department):
+        Employee.__init__(self, name, salary)
         self.department = department
-        super().__init__(**kwargs)
 
 
 class Developer(Employee):
-    def __init__(self, programming_language, **kwargs):
+    def __init__(self, name, salary, programming_language):
+        Employee.__init__(self, name, salary)
         self.programming_language = programming_language
-        super().__init__(**kwargs)
 
 
 class TeamLead(Manager, Developer):
     def __init__(self, name, salary, department, programming_language, team_size):
+        Manager.__init__(self, name, salary, department)
+        Developer.__init__(self, name, salary, programming_language)
         self.team_size = team_size
-        super().__init__(
-            name=name,
-            salary=salary,
-            department=department,
-            programming_language=programming_language
-        )
 
-team_lead = TeamLead("Yurii", 10000, "AQA", "Python", 5)
+team_lead = TeamLead("Yurii", 10000, "AQA", "Python", 15)
 
 print(team_lead.name)
 print(team_lead.salary)
