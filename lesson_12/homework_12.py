@@ -31,11 +31,9 @@ class TestGetLongestWord(TestCase):
         actual_result = get_longest_word(["aa", "bb", "cc"])
         assert actual_result in ["aa", "bb", "cc"]
 
-
     def test_get_longest_word_invalid_type(self):
-        test_input = "not a list"
-        actual_result = get_longest_word(test_input)
-        assert actual_result in test_input
+        actual_result = get_longest_word("not a list")
+        assert actual_result in "not a list"
 
 
 # sum_numbers
@@ -53,13 +51,12 @@ class TestSumNumbers(TestCase):
         actual_result = sum_numbers("5")
         assert actual_result == 5
 
-
     def test_sum_numbers_empty_string(self):
         actual_result = sum_numbers("")
         assert actual_result == "Не можу це зробити!"
 
 
-# find_substring
+#  find_substring
 class TestFindSubstring(TestCase):
 
     def test_find_substring_found(self):
@@ -74,14 +71,9 @@ class TestFindSubstring(TestCase):
         actual_result = find_substring("", "a")
         assert actual_result == -1
 
-
     def test_find_substring_invalid_type(self):
-        try:
+        with self.assertRaises(Exception):
             find_substring(123, "a")
-        except Exception:
-            assert True
-        else:
-            assert False
 
 
 if __name__ == "__main__":
