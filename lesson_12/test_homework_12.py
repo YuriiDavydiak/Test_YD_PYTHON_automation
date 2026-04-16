@@ -18,6 +18,10 @@ class TestReverseString(TestCase):
         actual_result = reverse_string("12345")
         assert actual_result == "54321"
 
+    def test_reverse_string_invalid_type(self):  # негативний
+        with self.assertRaises(Exception):
+            reverse_string(123)
+
 
 # get_longest_word
 class TestGetLongestWord(TestCase):
@@ -26,14 +30,22 @@ class TestGetLongestWord(TestCase):
         actual_result = get_longest_word(["a", "abc", "ab"])
         assert actual_result == "abc"
 
+    def test_get_longest_word_empty(self):
+        with self.assertRaises(IndexError):
+            get_longest_word([])
 
     def test_get_longest_word_same_length(self):
         actual_result = get_longest_word(["aa", "bb", "cc"])
         assert actual_result in ["aa", "bb", "cc"]
 
-    def test_get_longest_word_invalid_type(self):
+    def test_get_longest_word_invalid_type(self): # негативний
         actual_result = get_longest_word("not a list")
         assert actual_result in "not a list"
+
+    def test_get_longest_word_none(self): # негативний
+        with self.assertRaises(Exception):
+            get_longest_word(None)
+
 
 
 # sum_numbers
@@ -51,12 +63,17 @@ class TestSumNumbers(TestCase):
         actual_result = sum_numbers("5")
         assert actual_result == 5
 
-    def test_sum_numbers_empty_string(self):
+    def test_sum_numbers_empty_string(self): # негативний
         actual_result = sum_numbers("")
         assert actual_result == "Не можу це зробити!"
 
+    def test_sum_numbers_none(self): # негативний
+        with self.assertRaises(Exception):
+            sum_numbers(None)
 
-#  find_substring
+
+
+# find_substring
 class TestFindSubstring(TestCase):
 
     def test_find_substring_found(self):
@@ -71,9 +88,13 @@ class TestFindSubstring(TestCase):
         actual_result = find_substring("", "a")
         assert actual_result == -1
 
-    def test_find_substring_invalid_type(self):
+    def test_find_substring_invalid_type(self): # негативний
         with self.assertRaises(Exception):
             find_substring(123, "a")
+
+    def test_find_substring_none(self): # негативний
+        with self.assertRaises(Exception):
+            find_substring(None, "a")
 
 
 if __name__ == "__main__":
