@@ -1,28 +1,31 @@
 import csv
 
-file_1 = "ideas_for_test/work_with_csv/random.csv"
-file_2 = "ideas_for_test/work_with_csv/random-michaels.csv"
 
-result_file = "result_davydіak.csv"
+def remove_duplicates_from_two_files(file_1, file_2, result_file):
+    unique_rows = []
+    seen = set()
 
-unique_rows = set()
+    for file in [file_1, file_2]:
+        with open(file, "r", encoding="utf-8") as csv_file:
+            reader = csv.reader(csv_file)
 
-with open(file_1, "r", encoding="utf-8") as file:
-    reader = csv.reader(file)
+            for row in reader:
+                row_tuple = tuple(row)
 
-    for row in reader:
-        unique_rows.add(tuple(row))
+                if row_tuple not in seen:
+                    seen.add(row_tuple)
+                    unique_rows.append(row)
 
-with open(file_2, "r", encoding="utf-8") as file:
-    reader = csv.reader(file)
+    with open(result_file, "w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.writer(csv_file)
+        writer.writerows(unique_rows)
 
-    for row in reader:
-        unique_rows.add(tuple(row))
+    print(f"Result saved to {result_file}")
 
-with open(result_file, "w", newline="", encoding="utf-8") as file:
-    writer = csv.writer(file)
 
-    for row in unique_rows:
-        writer.writerow(row)
+if __name__ == "__main__":
+    file_1 = "ideas_for_test/work_with_csv/random.csv"
+    file_2 = "ideas_for_test/work_with_csv/random-michaels.csv"
+    result_file = "result_davydyak.csv"
 
-print("Файл result_davydіak.csv створено успішно")
+    remove_duplicates_from_two_files(file_1, file_2, result_file)

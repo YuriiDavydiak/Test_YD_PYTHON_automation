@@ -2,28 +2,33 @@ import os
 import json
 import logging
 
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    filename="json_davydiak.log",
-    filemode="w"
-)
-folder_path = "ideas_for_test/work_with_json"
 
-for file_name in os.listdir(folder_path):
+def validate_json_files(folder_path):
+    log_file = "json_davydyak.log"
 
-    if file_name.endswith(".json"):
+    logging.basicConfig(
+        filename=log_file,
+        level=logging.ERROR,
+        format="%(asctime)s - %(levelname)s - %(message)s"
+    )
 
-        full_path = os.path.join(folder_path, file_name)
+    files = os.listdir(folder_path)
 
-        try:
-            with open(full_path, "r", encoding="utf-8") as file:
-                json.load(file)
+    for file in files:
+        if file.endswith(".json"):
+            file_path = os.path.join(folder_path, file)
 
-            logging.info(f"{file_name} is valid JSON")
+            try:
+                with open(file_path, "r", encoding="utf-8") as json_file:
+                    json.load(json_file)
 
-        except json.JSONDecodeError as error:
-            logging.error(f"{file_name} is INVALID JSON -> {error}")
+                print(f"{file} is valid")
 
-        except Exception as error:
-            logging.error(f"{file_name} unexpected error -> {error}")
+            except json.JSONDecodeError as error:
+                logging.error(f"{file} is invalid JSON: {error}")
+                print(f"{file} is invalid")
+
+
+if __name__ == "__main__":
+    folder_path = "ideas_for_test/work_with_json"
+    validate_json_files(folder_path)
