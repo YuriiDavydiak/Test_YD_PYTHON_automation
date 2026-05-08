@@ -7,13 +7,6 @@ def logger(func):
         return result
     return wrapper
 
-@logger
-def add(a, b):
-    return a + b
-
-add(3, 5)
-
-
 def exception_handler(func):
     def wrapper(*args, **kwargs):
         try:
@@ -22,9 +15,15 @@ def exception_handler(func):
             print(f"Помилка у функції {func.__name__}: {type(e).__name__}: {e}")
     return wrapper
 
+@logger
+def add(a, b):
+    return a + b
+
 @exception_handler
 def divide(a, b):
     return a / b
 
-divide(10, 2)
-divide(10, 0)
+if __name__ == "__main__":
+    add(3, 5)
+    divide(10, 2)
+    divide(10, 0)
