@@ -1,9 +1,10 @@
-import logging
 from datetime import datetime
+from logger import get_logger
 
 TARGET_KEY = "Key TSTFEED0300|7E3E|0400"
 HB_FILE = "hblog.txt"
-LOG_FILE = "hb_test.log"
+
+logger = get_logger()
 
 
 def filter_lines(filepath, key):
@@ -22,14 +23,6 @@ def get_timestamp(line):
 
 
 def analyze_heartbeat(filtered_lines):
-    logging.basicConfig(
-        filename=LOG_FILE,
-        level=logging.DEBUG,
-        format="%(levelname)s - %(message)s",
-        filemode="w",
-        encoding="utf-8"
-    )
-
     for i in range(len(filtered_lines) - 1):
         current_ts = get_timestamp(filtered_lines[i])
         next_ts = get_timestamp(filtered_lines[i + 1])
@@ -37,11 +30,11 @@ def analyze_heartbeat(filtered_lines):
         diff = abs((current_ts - next_ts).total_seconds())
 
         if 31 < diff < 33:
-            logging.warning(f"Timestamp {current_ts.strftime('%H:%M:%S')} — heartbeat {diff:.0f} сек (WARNING)")
+            logger.warning(f"Timestamp {current_ts.strftime('%H:%M:%S')} — heartbeat {diff:.0f} сек (WARNING)")
         elif diff >= 33:
-            logging.error(f"Timestamp {current_ts.strftime('%H:%M:%S')} — heartbeat {diff:.0f} сек (ERROR)")
+            logger.error(f"Timestamp {current_ts.strftime('%H:%M:%S')} — heartbeat {diff:.0f} сек (ERROR)")
 
-    print(f"Аналіз завершено. Результат у файлі {LOG_FILE}")
+    print(f"Аналіз завершено. Результат у файлі hb_test.log")
 
 
 if __name__ == "__main__":
