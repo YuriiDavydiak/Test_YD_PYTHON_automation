@@ -12,5 +12,14 @@ class SecurePage:
     def get_heading_text(self):
         return self.page.locator(self.SECURE_HEADING).text_content()
 
+    def get_flash_message(self):
+        return self.page.locator(self.FLASH_MESSAGE).text_content()
+
     def logout(self):
         self.page.click(self.LOGOUT_BTN)
+
+    def is_logout_button_visible(self):
+        return self.page.locator(self.LOGOUT_BTN).count() > 0
+
+    def get_url(self):
+        return self.page.url

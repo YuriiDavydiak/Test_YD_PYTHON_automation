@@ -1,28 +1,36 @@
-def test_secure_page_heading(secure_page):
-    assert "Secure Area" in secure_page.get_heading_text()
+import pytest
 
 
-def test_logout_redirects_to_login(secure_page):
-    secure_page.logout()
-    assert secure_page.page.url.endswith("/login")
+@pytest.mark.secure_area
+class TestSecureArea:
 
+    @pytest.mark.smoke
+    def test_secure_page_heading(self, secure_page):
+        assert "Secure Area" in secure_page.get_heading_text()
 
-def test_logout_shows_flash_message(secure_page):
-    secure_page.logout()
-    flash_text = secure_page.page.locator("#flash").text_content()
-    assert "logged out" in flash_text.lower()
+    @pytest.mark.regression
+    def test_logout_redirects_to_login(self, secure_page):
+        secure_page.logout()
+        assert secure_page.get_url().endswith("/login")
 
-def test_login_page_title(login_page):
-    assert login_page.page.title() == "The Internet"
+    @pytest.mark.regression
+    def test_logout_shows_flash_message(self, secure_page):
+        secure_page.logout()
+        assert "logged out" in secure_page.get_flash_message().lower()
 
+    @pytest.mark.smoke
+    def test_login_page_title(self, login_page):
+        assert login_page.get_title() == "The Internet"
 
-def test_logout_button_disappears_after_logout(secure_page):
-    secure_page.logout()
-    assert secure_page.page.locator("a[href='/logout']").count() == 0
+    @pytest.mark.regression
+    def test_logout_button_disappears_after_logout(self, secure_page):
+        secure_page.logout()
+        assert secure_page.is_logout_button_visible() is False
 
-
-def test_direct_access_to_secure_without_login_redirects(page):
-    page.goto("https://the-internet.herokuapp.com/secure")
-    assert page.url.endswith("/login")
-    flash_text = page.locator("#flash").text_content()
-    assert "must login" in flash_text.lower()
+    @pytest.mark.regression
+    def test_direct_access_to_secure_without_login_redirects(self, page):
+        page.goto("https://the-internet.herokuapp.com/secure")
+        from pages.login_page import LoginPage
+        lp = LoginPage(page)
+        assert page.url.endswith("/login")
+        assert "must login" in lp.get_flash_message().lower()

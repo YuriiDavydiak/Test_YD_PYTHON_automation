@@ -1,4 +1,6 @@
 class LoginPage:
+    URL = "/login"
+
     USERNAME_INPUT = "#username"
     PASSWORD_INPUT = "#password"
     SUBMIT_BTN = "button[type='submit']"
@@ -7,8 +9,8 @@ class LoginPage:
     def __init__(self, page):
         self.page = page
 
-    def open(self, url):
-        self.page.goto(url)
+    def open(self, base_url):
+        self.page.goto(base_url + self.URL)
 
     def login(self, username, password):
         self.page.fill(self.USERNAME_INPUT, username)
@@ -20,3 +22,6 @@ class LoginPage:
 
     def is_login_form_visible(self):
         return self.page.locator(self.USERNAME_INPUT).is_visible()
+
+    def get_title(self):
+        return self.page.title()
