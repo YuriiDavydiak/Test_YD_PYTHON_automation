@@ -10,10 +10,21 @@ def setup_database():
     yield
 
 
+@allure.step("Створюємо тестового користувача: {name} / {email}")
+def create_test_user(name="Test User", email="test@example.com"):
+    return insert_user(name, email)
+
+
+@allure.step("Видаляємо тестового користувача з id={user_id}")
+def remove_test_user(user_id):
+    delete_user(user_id)
+
+
 @allure.feature("Database Connection")
 class TestDatabaseConnection:
 
     @allure.story("Перевірка підключення до бази даних")
+    @allure.title("Перевірка активного підключення до бази даних")
     def test_database_connection(self):
         with allure.step("Відкриваємо з'єднання з базою даних"):
             conn = get_connection()
@@ -30,9 +41,9 @@ class TestDatabaseConnection:
 class TestUserOperations:
 
     @allure.story("Вставка нового користувача")
+    @allure.title("Вставка нового користувача в базу даних")
     def test_insert_user(self):
-        with allure.step("Вставляємо нового користувача в базу"):
-            user_id = insert_user("Test User", "test@example.com")
+        user_id = create_test_user("Test User", "test@example.com")
 
         with allure.step("Перевіряємо що користувач створений"):
             assert user_id is not None
@@ -40,13 +51,12 @@ class TestUserOperations:
             assert user[1] == "Test User"
             assert user[2] == "test@example.com"
 
-        with allure.step("Видаляємо тестового користувача"):
-            delete_user(user_id)
+        remove_test_user(user_id)
 
     @allure.story("Оновлення даних користувача")
+    @allure.title("Оновлення імені та email користувача")
     def test_update_user(self):
-        with allure.step("Створюємо тестового користувача"):
-            user_id = insert_user("Old Name", "old@example.com")
+        user_id = create_test_user("Old Name", "old@example.com")
 
         with allure.step("Оновлюємо ім'я користувача"):
             update_user(user_id, name="New Name")
@@ -58,13 +68,12 @@ class TestUserOperations:
             user = get_user(user_id)
             assert user[2] == "new@example.com"
 
-        with allure.step("Видаляємо тестового користувача"):
-            delete_user(user_id)
+        remove_test_user(user_id)
 
     @allure.story("Видалення користувача")
+    @allure.title("Видалення користувача з бази даних")
     def test_delete_user(self):
-        with allure.step("Створюємо тестового користувача"):
-            user_id = insert_user("To Delete", "delete@example.com")
+        user_id = create_test_user("To Delete", "delete@example.com")
 
         with allure.step("Видаляємо користувача"):
             delete_user(user_id)
@@ -74,10 +83,11 @@ class TestUserOperations:
             assert user is None
 
     @allure.story("Вибірка всіх користувачів")
+    @allure.title("Отримання списку всіх користувачів")
     def test_select_all_users(self):
         with allure.step("Створюємо двох тестових користувачів"):
-            insert_user("User A", "a@example.com")
-            insert_user("User B", "b@example.com")
+            create_test_user("User A", "a@example.com")
+            create_test_user("User B", "b@example.com")
 
         with allure.step("Отримуємо список всіх користувачів"):
             users = get_all_users()
