@@ -1,61 +1,184 @@
 pipeline {
     agent any
 
-    // Jenkins перевіряє репозиторій раз на хвилину і сам запускає білд
-    // при появі нового коміту (заміна вебхука для локального Jenkins)
-    triggers {
-        pollSCM('* * * * *')
+    options {
+        timestamps()
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
     environment {
-        // conftest.py і tests/*.py читають ці змінні через os.getenv() /
-        // python-dotenv. Оскільки реального .env файлу в репозиторії
-        // немає (він у .gitignore), load_dotenv() нічого не знайде і
-        // просто піде далі - а os.getenv() підхопить значення, які
-        // Jenkins виставив тут як змінні середовища процесу.
-        LOGIN_USERNAME = credentials('login-username')
-        LOGIN_PASSWORD = credentials('login-password')
-        LOGIN_URL      = credentials('login-url')
+        PYTHON = 'py'
+        PIP = 'py -m pip'
+        TEST_REPORT = 'test-results/report.html'
+        TEST_XML = 'test-results/junit.xml'
     }
 
     stages {
-
         stage('Checkout') {
             steps {
+                echo '📥 Завантажуємо код з репозиторію...'
                 checkout scm
+                sh 'echo "Branch: ${GIT_BRANCH}"'
+                sh 'echo "Commit: ${GIT_COMMIT}"'
             }
         }
 
-        stage('Install dependencies') {
+        stage('Install Dependencies') {
             steps {
-                dir('lesson_29') {
-                    bat 'python -m venv venv'
-                    bat 'venv\\Scripts\\pip install --upgrade pip'
-                    bat 'venv\\Scripts\\pip install -r requirements.txt'
-                    // ставимо сам браузер Chromium для Playwright
-                    // (pytest.ini вже задає --browser chromium за замовчуванням)
-                    bat 'venv\\Scripts\\playwright install chromium'
-                }
+                echo '📦 Встановлюємо залежності...'
+                sh '''
+                    ${PYTHON} -m pip install --upgrade pip
+                    ${PIP} install -r requirements.txt
+                '''
             }
         }
 
-        stage('Run tests') {
+        stage('Run Tests') {
             steps {
-                dir('lesson_29') {
-                    bat 'venv\\Scripts\\pytest tests --junitxml=results.xml --html=report.html --self-contained-html'
-                }
+                echo '🧪 Запускаємо автотести...'
+                sh '''
+                    mkdir -p test-results
+                    ${PYTHON} -m pytest tests/ \
+                        --html=test-results/report.html \
+                        --self-contained-html \
+                        --junitxml=test-results/junit.xml \
+                        -v \
+                        --tb=short
+                '''
             }
         }
 
-        stage('Publish results') {
+        stage('Publish Results') {
             steps {
-                dir('lesson_29') {
-                    junit 'results.xml'
-                    archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
-                }
+                echo '📊 Публікуємо результати тестування...'
+                junit 'test-results/junit.xml'
+                publishHTML([
+                    reportDir: 'test-results',
+                    reportFiles: 'report.html',
+                    reportName: 'pytest Report',
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true
+                ])
             }
         }
     }
+
+    post {
+        always {
+            echo '🧹 Очищуємо после завершення...'
+            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+        }
+
+        success {
+            echo '✅ Тести пройшли успішно!'
+            emailext(
+                subject: '✅ Jenkins Pipeline SUCCESS: ${JOB_NAME} - Build #${BUILD_NUMBER}',
+                body: '''
+                    <h2>✅ Тести пройшли успішно!</h2>
+                    <table border="1" cellpadding="5">
+                        <tr>
+                            <td><b>Проект:</b></td>
+                            <td>${JOB_NAME}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Build #:</b></td>
+                            <td>${BUILD_NUMBER}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Branch:</b></td>
+                            <td>${GIT_BRANCH}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Commit:</b></td>
+                            <td>${GIT_COMMIT}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Duration:</b></td>
+                            <td>${BUILD_DURATION}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Status:</b></td>
+                            <td style="color: green;"><b>SUCCESS</b></td>
+                        </tr>
+                    </table>
+
+                    <h3>Детальна інформація:</h3>
+                    <p>
+                        <a href="${BUILD_URL}pytest_Report/">Переглянути HTML звіт</a>
+                    </p>
+                    <p>
+                        <a href="${BUILD_URL}console">Переглянути консоль</a>
+                    </p>
+                ''',
+                to: '${DEFAULT_RECIPIENTS}',
+                mimeType: 'text/html',
+                recipientProviders: [developers(), requestor()]
+            )
+        }
+
+        failure {
+            echo '❌ Тести не пройшли!'
+            emailext(
+                subject: '❌ Jenkins Pipeline FAILED: ${JOB_NAME} - Build #${BUILD_NUMBER}',
+                body: '''
+                    <h2 style="color: red;">❌ Тести не пройшли!</h2>
+                    <table border="1" cellpadding="5">
+                        <tr>
+                            <td><b>Проект:</b></td>
+                            <td>${JOB_NAME}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Build #:</b></td>
+                            <td>${BUILD_NUMBER}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Branch:</b></td>
+                            <td>${GIT_BRANCH}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Commit:</b></td>
+                            <td>${GIT_COMMIT}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Duration:</b></td>
+                            <td>${BUILD_DURATION}</td>
+                        </tr>
+                        <tr>
+                            <td><b>Status:</b></td>
+                            <td style="color: red;"><b>FAILED</b></td>
+                        </tr>
+                    </table>
+
+                    <h3>Останні помилки:</h3>
+                    <pre>${BUILD_LOG, maxLines=50}</pre>
+
+                    <h3>Детальна інформація:</h3>
+                    <p>
+                        <a href="${BUILD_URL}pytest_Report/">Переглянути HTML звіт</a>
+                    </p>
+                    <p>
+                        <a href="${BUILD_URL}console">Переглянути консоль</a>
+                    </p>
+                ''',
+                to: '${DEFAULT_RECIPIENTS}',
+                mimeType: 'text/html',
+                recipientProviders: [developers(), requestor()]
+            )
+        }
+
+        unstable {
+            echo '⚠️ Pipeline нестабільний (деякі тести не пройшли)'
+            emailext(
+                subject: '⚠️ Jenkins Pipeline UNSTABLE: ${JOB_NAME} - Build #${BUILD_NUMBER}',
+                body: 'Pipeline завершив роботу зі статусом UNSTABLE. Перевірте детально: ${BUILD_URL}',
+                to: '${DEFAULT_RECIPIENTS}',
+                mimeType: 'text/html'
+            )
+        }
+    }
+}
+
 
     post {
         always {
