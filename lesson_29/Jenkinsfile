@@ -19,6 +19,7 @@ pipeline {
             steps {
                 echo '📦 Встановлюємо залежності...'
                 bat '''
+                    cd lesson_29
                     "C:\\Users\\YuriiDavydiak\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m pip install --upgrade pip
                     "C:\\Users\\YuriiDavydiak\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m pip install -r requirements.txt
                 '''
@@ -29,6 +30,7 @@ pipeline {
             steps {
                 echo '🧪 Запускаємо автотести...'
                 bat '''
+                    cd lesson_29
                     if not exist test-results mkdir test-results
                     "C:\\Users\\YuriiDavydiak\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
                 '''
@@ -38,9 +40,9 @@ pipeline {
         stage('Publish Results') {
             steps {
                 echo '📊 Публікуємо результати тестування...'
-                junit 'test-results/junit.xml'
+                junit 'lesson_29/test-results/junit.xml'
                 publishHTML([
-                    reportDir: 'test-results',
+                    reportDir: 'lesson_29/test-results',
                     reportFiles: 'report.html',
                     reportName: 'pytest Report',
                     alwaysLinkToLastBuild: true,
@@ -53,7 +55,7 @@ pipeline {
     post {
         always {
             echo '🧹 Очищуємо після завершення...'
-            archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
+            archiveArtifacts artifacts: 'lesson_29/test-results/**', allowEmptyArchive: true
         }
 
         success {
