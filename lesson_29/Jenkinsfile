@@ -19,15 +19,13 @@ pipeline {
             steps {
                 echo '📥 Завантажуємо код з репозиторію...'
                 checkout scm
-                sh 'echo "Branch: ${GIT_BRANCH}"'
-                sh 'echo "Commit: ${GIT_COMMIT}"'
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 echo '📦 Встановлюємо залежності...'
-                sh '''
+                bat '''
                     ${PYTHON} -m pip install --upgrade pip
                     ${PIP} install -r requirements.txt
                 '''
@@ -37,8 +35,8 @@ pipeline {
         stage('Run Tests') {
             steps {
                 echo '🧪 Запускаємо автотести...'
-                sh '''
-                    mkdir -p test-results
+                bat '''
+                    if not exist test-results mkdir test-results
                     ${PYTHON} -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
                 '''
             }
@@ -132,9 +130,6 @@ pipeline {
                             <td style="color: red;"><b>FAILED</b></td>
                         </tr>
                     </table>
-
-                    <h3>Помилка:</h3>
-                    <pre>${BUILD_LOG_REGEX}</pre>
 
                     <h3>Деталі:</h3>
                     <p><a href="${BUILD_URL}pytest_Report/">Переглянути звіт</a></p>
