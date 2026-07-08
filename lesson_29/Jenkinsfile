@@ -39,12 +39,7 @@ pipeline {
                 echo '🧪 Запускаємо автотести...'
                 sh '''
                     mkdir -p test-results
-                    ${PYTHON} -m pytest tests/ \
-                        --html=test-results/report.html \
-                        --self-contained-html \
-                        --junitxml=test-results/junit.xml \
-                        -v \
-                        --tb=short
+                    ${PYTHON} -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
                 '''
             }
         }
@@ -66,7 +61,7 @@ pipeline {
 
     post {
         always {
-            echo '🧹 Очищуємо после завершення...'
+            echo '🧹 Очищуємо після завершення...'
             archiveArtifacts artifacts: 'test-results/**', allowEmptyArchive: true
         }
 
@@ -90,10 +85,6 @@ pipeline {
                             <td>${GIT_BRANCH}</td>
                         </tr>
                         <tr>
-                            <td><b>Commit:</b></td>
-                            <td>${GIT_COMMIT}</td>
-                        </tr>
-                        <tr>
                             <td><b>Duration:</b></td>
                             <td>${BUILD_DURATION}</td>
                         </tr>
@@ -103,13 +94,9 @@ pipeline {
                         </tr>
                     </table>
 
-                    <h3>Детальна інформація:</h3>
-                    <p>
-                        <a href="${BUILD_URL}pytest_Report/">Переглянути HTML звіт</a>
-                    </p>
-                    <p>
-                        <a href="${BUILD_URL}console">Переглянути консоль</a>
-                    </p>
+                    <h3>Деталі:</h3>
+                    <p><a href="${BUILD_URL}pytest_Report/">Переглянути HTML звіт</a></p>
+                    <p><a href="${BUILD_URL}console">Переглянути консоль</a></p>
                 ''',
                 to: '${DEFAULT_RECIPIENTS}',
                 mimeType: 'text/html',
@@ -137,10 +124,6 @@ pipeline {
                             <td>${GIT_BRANCH}</td>
                         </tr>
                         <tr>
-                            <td><b>Commit:</b></td>
-                            <td>${GIT_COMMIT}</td>
-                        </tr>
-                        <tr>
                             <td><b>Duration:</b></td>
                             <td>${BUILD_DURATION}</td>
                         </tr>
@@ -150,16 +133,12 @@ pipeline {
                         </tr>
                     </table>
 
-                    <h3>Останні помилки:</h3>
-                    <pre>${BUILD_LOG, maxLines=50}</pre>
+                    <h3>Помилка:</h3>
+                    <pre>${BUILD_LOG_REGEX}</pre>
 
-                    <h3>Детальна інформація:</h3>
-                    <p>
-                        <a href="${BUILD_URL}pytest_Report/">Переглянути HTML звіт</a>
-                    </p>
-                    <p>
-                        <a href="${BUILD_URL}console">Переглянути консоль</a>
-                    </p>
+                    <h3>Деталі:</h3>
+                    <p><a href="${BUILD_URL}pytest_Report/">Переглянути звіт</a></p>
+                    <p><a href="${BUILD_URL}console">Переглянути консоль</a></p>
                 ''',
                 to: '${DEFAULT_RECIPIENTS}',
                 mimeType: 'text/html',
@@ -168,30 +147,12 @@ pipeline {
         }
 
         unstable {
-            echo '⚠️ Pipeline нестабільний (деякі тести не пройшли)'
+            echo '⚠️ Pipeline нестабільний'
             emailext(
                 subject: '⚠️ Jenkins Pipeline UNSTABLE: ${JOB_NAME} - Build #${BUILD_NUMBER}',
-                body: 'Pipeline завершив роботу зі статусом UNSTABLE. Перевірте детально: ${BUILD_URL}',
+                body: 'Pipeline завершив роботу зі статусом UNSTABLE.',
                 to: '${DEFAULT_RECIPIENTS}',
                 mimeType: 'text/html'
-            )
-        }
-    }
-}
-
-
-    post {
-        always {
-            emailext(
-                subject: "Jenkins Pipeline: ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """
-                    <p>Результат виконання пайплайну: <b>${currentBuild.currentResult}</b></p>
-                    <p>Проєкт: ${env.JOB_NAME}, білд #${env.BUILD_NUMBER}</p>
-                    <p>Деталі збірки: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
-                    <p>Тестовий звіт: <a href="${env.BUILD_URL}artifact/lesson_29/report.html">${env.BUILD_URL}artifact/lesson_29/report.html</a></p>
-                """,
-                mimeType: 'text/html',
-                to: 'MENTOR_EMAIL_HERE'
             )
         }
     }
