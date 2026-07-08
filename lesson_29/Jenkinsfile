@@ -19,8 +19,8 @@ pipeline {
             steps {
                 echo '📦 Встановлюємо залежності...'
                 bat '''
-                    py -m pip install --upgrade pip
-                    py -m pip install -r requirements.txt
+                    "C:\\Users\\YuriiDavydiak\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m pip install --upgrade pip
+                    "C:\\Users\\YuriiDavydiak\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m pip install -r requirements.txt
                 '''
             }
         }
@@ -30,7 +30,7 @@ pipeline {
                 echo '🧪 Запускаємо автотести...'
                 bat '''
                     if not exist test-results mkdir test-results
-                    py -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
+                    "C:\\Users\\YuriiDavydiak\\AppData\\Local\\Python\\pythoncore-3.14-64\\python.exe" -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
                 '''
             }
         }
