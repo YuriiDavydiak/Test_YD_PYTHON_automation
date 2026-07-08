@@ -1,0 +1,75 @@
+pipeline {
+    agent any
+
+    // Jenkins перевіряє репозиторій раз на хвилину і сам запускає білд
+    // при появі нового коміту (заміна вебхука для локального Jenkins)
+    triggers {
+        pollSCM('* * * * *')
+    }
+
+    environment {
+        // conftest.py і tests/*.py читають ці змінні через os.getenv() /
+        // python-dotenv. Оскільки реального .env файлу в репозиторії
+        // немає (він у .gitignore), load_dotenv() нічого не знайде і
+        // просто піде далі - а os.getenv() підхопить значення, які
+        // Jenkins виставив тут як змінні середовища процесу.
+        LOGIN_USERNAME = credentials('login-username')
+        LOGIN_PASSWORD = credentials('login-password')
+        LOGIN_URL      = credentials('login-url')
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install dependencies') {
+            steps {
+                dir('lesson_29') {
+                    bat 'python -m venv venv'
+                    bat 'venv\\Scripts\\pip install --upgrade pip'
+                    bat 'venv\\Scripts\\pip install -r requirements.txt'
+                    // ставимо сам браузер Chromium для Playwright
+                    // (pytest.ini вже задає --browser chromium за замовчуванням)
+                    bat 'venv\\Scripts\\playwright install chromium'
+                }
+            }
+        }
+
+        stage('Run tests') {
+            steps {
+                dir('lesson_29') {
+                    bat 'venv\\Scripts\\pytest tests --junitxml=results.xml --html=report.html --self-contained-html'
+                }
+            }
+        }
+
+        stage('Publish results') {
+            steps {
+                dir('lesson_29') {
+                    junit 'results.xml'
+                    archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            emailext(
+                subject: "Jenkins Pipeline: ${currentBuild.currentResult} - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+                    <p>Результат виконання пайплайну: <b>${currentBuild.currentResult}</b></p>
+                    <p>Проєкт: ${env.JOB_NAME}, білд #${env.BUILD_NUMBER}</p>
+                    <p>Деталі збірки: <a href="${env.BUILD_URL}">${env.BUILD_URL}</a></p>
+                    <p>Тестовий звіт: <a href="${env.BUILD_URL}artifact/lesson_29/report.html">${env.BUILD_URL}artifact/lesson_29/report.html</a></p>
+                """,
+                mimeType: 'text/html',
+                to: 'MENTOR_EMAIL_HERE'
+            )
+        }
+    }
+}
