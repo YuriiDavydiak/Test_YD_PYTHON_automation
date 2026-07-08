@@ -7,13 +7,6 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
-    environment {
-        PYTHON = 'py'
-        PIP = 'py -m pip'
-        TEST_REPORT = 'test-results/report.html'
-        TEST_XML = 'test-results/junit.xml'
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -26,8 +19,8 @@ pipeline {
             steps {
                 echo '📦 Встановлюємо залежності...'
                 bat '''
-                    ${PYTHON} -m pip install --upgrade pip
-                    ${PIP} install -r requirements.txt
+                    py -m pip install --upgrade pip
+                    py -m pip install -r requirements.txt
                 '''
             }
         }
@@ -37,7 +30,7 @@ pipeline {
                 echo '🧪 Запускаємо автотести...'
                 bat '''
                     if not exist test-results mkdir test-results
-                    ${PYTHON} -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
+                    py -m pytest tests/ --html=test-results/report.html --self-contained-html --junitxml=test-results/junit.xml -v --tb=short
                 '''
             }
         }
