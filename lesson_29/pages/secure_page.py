@@ -21,7 +21,6 @@ class SecurePage:
     def logout(self):
 
         try:
-            # Спосіб 1: точний селектор
             self.page.click("a[href='/logout']")
         except:
             try:
@@ -32,6 +31,7 @@ class SecurePage:
                     self.page.click("a:has-text('Logout')")
                 except:
                     pass
+
 
         try:
             self.page.wait_for_url("**/login", timeout=5000)
