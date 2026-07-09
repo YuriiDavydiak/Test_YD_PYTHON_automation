@@ -12,12 +12,15 @@ class LoginPage:
         self.page.goto(base_url + self.URL)
 
     def login(self, username, password):
-        # Use JavaScript to fill inputs, bypassing Playwright API issues
+        # Use JavaScript to fill inputs
         self.page.evaluate(f"""
             document.querySelector('{self.USERNAME_INPUT}').value = '{username}';
             document.querySelector('{self.PASSWORD_INPUT}').value = '{password}';
         """)
+        # Click submit button
         self.page.click(self.SUBMIT_BTN)
+        # Wait for navigation
+        self.page.wait_for_load_state('networkidle')
 
     def get_flash_message(self):
         return self.page.locator(self.FLASH_MESSAGE).text_content()
