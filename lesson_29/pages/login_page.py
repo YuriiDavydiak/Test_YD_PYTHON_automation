@@ -2,7 +2,7 @@ class LoginPage:
     URL = "/login"
     USERNAME_INPUT = "#username"
     PASSWORD_INPUT = "#password"
-    SUBMIT_BTN = "button[type='submit']"
+    SUBMIT_BTN = 'button[type="submit"]'
     FLASH_MESSAGE = "#flash"
 
     def __init__(self, page):
