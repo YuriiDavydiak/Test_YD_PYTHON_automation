@@ -17,8 +17,8 @@ class LoginPage:
             document.querySelector('{self.USERNAME_INPUT}').value = '{username}';
             document.querySelector('{self.PASSWORD_INPUT}').value = '{password}';
         """)
-        # Press Enter to submit the form
-        self.page.press(self.PASSWORD_INPUT, 'Enter')
+        # Use JavaScript to click the submit button
+        self.page.evaluate(f"document.querySelector('{self.SUBMIT_BTN}').click();")
         # Wait for navigation
         self.page.wait_for_load_state('networkidle')
 
