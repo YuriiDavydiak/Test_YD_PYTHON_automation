@@ -4,7 +4,6 @@ pipeline {
     options {
         timestamps()
         timeout(time: 30, unit: 'MINUTES')
-        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
     stages {
@@ -51,13 +50,7 @@ pipeline {
             steps {
                 echo '📊 Публікуємо результати тестування...'
                 junit 'lesson_29/test-results/junit.xml'
-                publishHTML([
-                    reportDir: 'lesson_29/test-results',
-                    reportFiles: 'report.html',
-                    reportName: 'pytest Report',
-                    alwaysLinkToLastBuild: true,
-                    keepAll: true
-                ])
+                archiveArtifacts artifacts: 'lesson_29/test-results/**', allowEmptyArchive: true
             }
         }
     }
@@ -71,88 +64,40 @@ pipeline {
         success {
             echo '✅ Тести пройшли успішно!'
             emailext(
-                subject: '✅ Jenkins Pipeline SUCCESS: ${JOB_NAME} - Build #${BUILD_NUMBER}',
-                body: '''
-                    <h2>✅ Тести пройшли успішно!</h2>
-                    <table border="1" cellpadding="5">
-                        <tr>
-                            <td><b>Проект:</b></td>
-                            <td>${JOB_NAME}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Build #:</b></td>
-                            <td>${BUILD_NUMBER}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Branch:</b></td>
-                            <td>${GIT_BRANCH}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Duration:</b></td>
-                            <td>${BUILD_DURATION}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Status:</b></td>
-                            <td style="color: green;"><b>SUCCESS</b></td>
-                        </tr>
-                    </table>
+                subject: "✅ Jenkins Build Success - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Build Success!
 
-                    <h3>Деталі:</h3>
-                    <p><a href="${BUILD_URL}pytest_Report/">Переглянути HTML звіт</a></p>
-                    <p><a href="${BUILD_URL}console">Переглянути консоль</a></p>
-                ''',
-                to: '${DEFAULT_RECIPIENTS}',
-                mimeType: 'text/html',
-                recipientProviders: [developers(), requestor()]
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+Build URL: ${env.BUILD_URL}
+
+Test Results: ${env.BUILD_URL}testReport/
+
+All tests PASSED ✅
+""",
+                to: "hilelul@mail.com",
+                mimeType: 'text/plain'
             )
         }
 
         failure {
             echo '❌ Тести не пройшли!'
             emailext(
-                subject: '❌ Jenkins Pipeline FAILED: ${JOB_NAME} - Build #${BUILD_NUMBER}',
-                body: '''
-                    <h2 style="color: red;">❌ Тести не пройшли!</h2>
-                    <table border="1" cellpadding="5">
-                        <tr>
-                            <td><b>Проект:</b></td>
-                            <td>${JOB_NAME}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Build #:</b></td>
-                            <td>${BUILD_NUMBER}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Branch:</b></td>
-                            <td>${GIT_BRANCH}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Duration:</b></td>
-                            <td>${BUILD_DURATION}</td>
-                        </tr>
-                        <tr>
-                            <td><b>Status:</b></td>
-                            <td style="color: red;"><b>FAILED</b></td>
-                        </tr>
-                    </table>
+                subject: "❌ Jenkins Build FAILED - ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """
+Build FAILED!
 
-                    <h3>Деталі:</h3>
-                    <p><a href="${BUILD_URL}pytest_Report/">Переглянути звіт</a></p>
-                    <p><a href="${BUILD_URL}console">Переглянути консоль</a></p>
-                ''',
-                to: '${DEFAULT_RECIPIENTS}',
-                mimeType: 'text/html',
-                recipientProviders: [developers(), requestor()]
-            )
-        }
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+Build URL: ${env.BUILD_URL}
 
-        unstable {
-            echo '⚠️ Pipeline нестабільний'
-            emailext(
-                subject: '⚠️ Jenkins Pipeline UNSTABLE: ${JOB_NAME} - Build #${BUILD_NUMBER}',
-                body: 'Pipeline завершив роботу зі статусом UNSTABLE.',
-                to: '${DEFAULT_RECIPIENTS}',
-                mimeType: 'text/html'
+Test Results: ${env.BUILD_URL}testReport/
+
+Please check the logs at: ${env.BUILD_URL}console
+""",
+                to: "hilelul@mail.com",
+                mimeType: 'text/plain'
             )
         }
     }
