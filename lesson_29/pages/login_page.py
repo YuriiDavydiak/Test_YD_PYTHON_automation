@@ -12,19 +12,9 @@ class LoginPage:
         self.page.goto(base_url + self.URL)
 
     def login(self, username, password):
-        username_input = self.page.locator(self.USERNAME_INPUT)
-        password_input = self.page.locator(self.PASSWORD_INPUT)
-        submit_btn = self.page.locator(self.SUBMIT_BTN)
-
-        username_input.click()
-        username_input.clear()
-        username_input.type(username)
-
-        password_input.click()
-        password_input.clear()
-        password_input.type(password)
-
-        submit_btn.click()
+        self.page.fill(self.USERNAME_INPUT, username)
+        self.page.fill(self.PASSWORD_INPUT, password)
+        self.page.click(self.SUBMIT_BTN)
 
     def get_flash_message(self):
         return self.page.locator(self.FLASH_MESSAGE).text_content()
