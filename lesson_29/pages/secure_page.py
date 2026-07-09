@@ -1,6 +1,6 @@
 class SecurePage:
     SECURE_HEADING = "h2"
-    LOGOUT_BTN = "a[href='/logout']"
+    LOGOUT_BTN = "a[href*='logout']"
     FLASH_MESSAGE = "#flash"
 
     def __init__(self, page):
@@ -17,6 +17,7 @@ class SecurePage:
 
     def logout(self):
         self.page.click(self.LOGOUT_BTN)
+        self.page.wait_for_load_state('networkidle')
 
     def is_logout_button_visible(self):
         return self.page.locator(self.LOGOUT_BTN).count() > 0
