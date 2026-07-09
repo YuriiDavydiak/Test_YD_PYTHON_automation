@@ -12,25 +12,17 @@ class LoginPage:
         self.page.goto(base_url + self.URL)
 
     def login(self, username, password):
-        # Use JavaScript to fill inputs
-        self.page.evaluate(f"""
-            document.querySelector('{self.USERNAME_INPUT}').value = '{username}';
-            document.querySelector('{self.PASSWORD_INPUT}').value = '{password}';
+        # Fill username field
+        self.page.fill(self.USERNAME_INPUT, username)
 
-            // Trigger change events
-            document.querySelector('{self.USERNAME_INPUT}').dispatchEvent(new Event('change', {{ bubbles: true }}));
-            document.querySelector('{self.PASSWORD_INPUT}').dispatchEvent(new Event('change', {{ bubbles: true }}));
-        """)
+        self.page.fill(self.PASSWORD_INPUT, password)
 
-        # Use JavaScript to click the submit button
-        self.page.evaluate(f"document.querySelector('{self.SUBMIT_BTN}').click();")
+        self.page.press(self.PASSWORD_INPUT, 'Enter')
 
-        # Wait for navigation with longer timeout
         try:
-            self.page.wait_for_load_state('networkidle', timeout=10000)
+            self.page.wait_for_url("**/secure", timeout=5000)
         except:
-            # If networkidle times out, wait for DOM to be ready
-            self.page.wait_for_load_state('domcontentloaded', timeout=10000)
+            self.page.wait_for_load_state('networkidle', timeout=5000)
 
     def get_flash_message(self):
         return self.page.locator(self.FLASH_MESSAGE).text_content()
