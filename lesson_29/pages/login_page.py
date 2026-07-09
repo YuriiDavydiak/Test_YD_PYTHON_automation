@@ -16,11 +16,21 @@ class LoginPage:
         self.page.evaluate(f"""
             document.querySelector('{self.USERNAME_INPUT}').value = '{username}';
             document.querySelector('{self.PASSWORD_INPUT}').value = '{password}';
+
+            // Trigger change events
+            document.querySelector('{self.USERNAME_INPUT}').dispatchEvent(new Event('change', {{ bubbles: true }}));
+            document.querySelector('{self.PASSWORD_INPUT}').dispatchEvent(new Event('change', {{ bubbles: true }}));
         """)
+
         # Use JavaScript to click the submit button
         self.page.evaluate(f"document.querySelector('{self.SUBMIT_BTN}').click();")
-        # Wait for navigation
-        self.page.wait_for_load_state('networkidle')
+
+        # Wait for navigation with longer timeout
+        try:
+            self.page.wait_for_load_state('networkidle', timeout=10000)
+        except:
+            # If networkidle times out, wait for DOM to be ready
+            self.page.wait_for_load_state('domcontentloaded', timeout=10000)
 
     def get_flash_message(self):
         return self.page.locator(self.FLASH_MESSAGE).text_content()
