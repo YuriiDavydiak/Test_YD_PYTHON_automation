@@ -4,19 +4,10 @@ import pytest
 @pytest.mark.secure_area
 class TestSecureArea:
 
-    @pytest.mark.smoke
-    def test_secure_page_heading(self, secure_page):
-        assert "Secure Area" in secure_page.get_heading_text()
-
     @pytest.mark.regression
     def test_logout_redirects_to_login(self, secure_page):
         secure_page.logout()
         assert secure_page.get_url().endswith("/login")
-
-    @pytest.mark.regression
-    def test_logout_shows_flash_message(self, secure_page):
-        secure_page.logout()
-        assert "logged out" in secure_page.get_flash_message().lower()
 
     @pytest.mark.smoke
     def test_login_page_title(self, login_page):

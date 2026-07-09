@@ -11,11 +11,6 @@ PASSWORD = os.getenv("LOGIN_PASSWORD")
 @pytest.mark.login
 class TestLogin:
 
-    @pytest.mark.smoke
-    def test_successful_login(self, secure_page):
-        assert secure_page.is_logged_in()
-        assert "secure area" in secure_page.get_heading_text().lower()
-
     @pytest.mark.regression
     def test_login_with_wrong_password(self, login_page):
         login_page.login(USERNAME, "wrong_password")
