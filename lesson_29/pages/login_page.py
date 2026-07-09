@@ -1,6 +1,5 @@
 class LoginPage:
     URL = "/login"
-
     USERNAME_INPUT = "#username"
     PASSWORD_INPUT = "#password"
     SUBMIT_BTN = "button[type='submit']"
@@ -13,9 +12,9 @@ class LoginPage:
         self.page.goto(base_url + self.URL)
 
     def login(self, username, password):
-        self.page.fill(self.USERNAME_INPUT, username)
-        self.page.fill(self.PASSWORD_INPUT, password)
-        self.page.click(self.SUBMIT_BTN)
+        self.page.locator(self.USERNAME_INPUT).fill(username)
+        self.page.locator(self.PASSWORD_INPUT).fill(password)
+        self.page.locator(self.SUBMIT_BTN).click()
 
     def get_flash_message(self):
         return self.page.locator(self.FLASH_MESSAGE).text_content()
